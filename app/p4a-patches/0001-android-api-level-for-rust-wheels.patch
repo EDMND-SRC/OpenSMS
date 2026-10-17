@@ -1,0 +1,16 @@
+diff --git a/pythonforandroid/recipe.py b/pythonforandroid/recipe.py
+index 1d5e3e91..b7f3b4d9 100644
+--- a/pythonforandroid/recipe.py
++++ b/pythonforandroid/recipe.py
+@@ -1636,6 +1636,11 @@ class RustCompiledComponentsRecipe(PyProjectRecipe):
+         )
+         realpython_dir = self.ctx.python_recipe.get_build_dir(arch.arch)
+ 
++        # maturin needs the Android API level to build a correctly tagged
++        # Android wheel during the PEP 517 build; mirrors the existing
++        # recipes/watchfiles/__init__.py handling.
++        env["ANDROID_API_LEVEL"] = str(self.ctx.ndk_api)
++
+         env["RUSTFLAGS"] = "-Clink-args=-L{} -L{}".format(
+             self.ctx.get_libs_dir(arch.arch), join(realpython_dir, "android-build")
+         )

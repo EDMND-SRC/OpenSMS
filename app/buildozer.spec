@@ -135,7 +135,9 @@ icon.adaptive_background.filename = %(source.dir)s/data/images/icon_bg.png
 
 # (list) Permissions
 # (See https://python-for-android.readthedocs.io/en/latest/buildoptions.html for all the supported syntaxes and properties)
-android.permissions = android.permission.INTERNET, android.permission.SEND_SMS, android.permission.WAKE_LOCK, android.permission.FOREGROUND_SERVICE, android.permission.FOREGROUND_SERVICE_DATA_SYNC, android.permission.POST_NOTIFICATIONS
+# RECEIVE_BOOT_COMPLETED pairs with the receiver in p4a.extra_args below, which is what
+# brings the service, and with it the API, back after a reboot with nobody opening the app.
+android.permissions = android.permission.INTERNET, android.permission.SEND_SMS, android.permission.RECEIVE_BOOT_COMPLETED, android.permission.WAKE_LOCK, android.permission.FOREGROUND_SERVICE, android.permission.FOREGROUND_SERVICE_DATA_SYNC, android.permission.POST_NOTIFICATIONS
 
 # (list) features (adds uses-feature -tags to manifest)
 #android.features = android.hardware.usb.host
@@ -396,7 +398,14 @@ p4a.branch = develop
 #p4a.setup_py = false
 
 # (str) extra command line arguments to pass when invoking pythonforandroid.toolchain
-#p4a.extra_args =
+# The boot receiver has to be a child of <application>, which p4a only learned to write on
+# 2026-09-10 (kivy/python-for-android#3377, --extra-manifest-application-xml). buildozer has
+# no setting for that option, so it travels through p4a.extra_args, and since the option
+# takes XML rather than a filename the element is written inline here. It is exported
+# because the system is the sender and every action in its filter is a protected broadcast,
+# so no other app can wake this receiver. It needs a p4a at or after that change, and the
+# fork named beside p4a.branch predates it, so read app/p4a-patches/ before a release build.
+p4a.extra_args = --extra-manifest-application-xml "<receiver android:name=\"in.daslearning.opensms.BootReceiver\" android:enabled=\"true\" android:exported=\"true\"><intent-filter><action android:name=\"android.intent.action.BOOT_COMPLETED\"/><action android:name=\"android.intent.action.QUICKBOOT_POWERON\"/><action android:name=\"android.intent.action.MY_PACKAGE_REPLACED\"/></intent-filter></receiver>"
 
 
 
